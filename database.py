@@ -1,7 +1,10 @@
 from sqlalchemy import create_engine, text
 import os
+from dotenv import load_dotenv, dotenv_values
 
-sql_url = os.environ['SQL_URL']
+load_dotenv()
+
+sql_url = os.getenv('SQL_URL')
 
 def get_connection():
     engine = create_engine(sql_url, isolation_level="AUTOCOMMIT")

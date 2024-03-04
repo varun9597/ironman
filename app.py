@@ -3,6 +3,7 @@ from database import get_connection
 from sqlalchemy import text
 import os
 
+
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Make sure to set a secure secret key
 
@@ -63,13 +64,13 @@ def dashboard():
     if 'user_id' in session:
         user_id = session['user_id']
         conn = get_connection()
-        query = text(f"select username from users where id = '{user_id}';")
+        query = text(f"select name from users where id = '{user_id}';")
         result = list(conn.execute(query).fetchone())
         if result:
-            username = result[0]
-            return render_template('dashboard.html', username = username)
+            name = result[0]
+            return render_template('dashboard.html', username = name)
     else:
-        flash('Please sign in to access the homepage', 'error')
+        #flash('Please sign in to access the homepage', 'error')
         return redirect(url_for('sign_in'))
 
 if __name__ == "__main__":
