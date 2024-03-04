@@ -10,18 +10,19 @@ def sign_in():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        try:
+            conn = get_connection()
+            query = text(f"SELECT id FROM users WHERE username = '{username}' AND password = '{password}'")
+            result = list(conn.execute(query).fetchone())
+            print(result)
 
-        conn = get_connection()
-        query = text(f"SELECT id FROM users WHERE username = '{username}' AND password = '{password}'")
-        result = list(conn.execute(query).fetchone())
-        print(result)
-
-        if result:
-            session['user_id'] = result[0]
-            flash('Login successful', 'success')
-            return redirect(url_for('home'))
-        else:
-            flash('Invalid username or password', 'error')
+            if result:
+                session['user_id'] = result[0]
+                return redirect(url_for('dashboard'))
+        except Exception as e:
+            print("Error:", e)
+            #flash('User does not exists. Please register.', 'error')
+            return redirect(url_for('sign_up'))
 
     return render_template('sign_in.html')
 
@@ -45,8 +46,14 @@ def sign_up():
 
     return render_template('sign_up.html')
 
-@app.route("/")
-def home():
+@app.route("/logout")
+def logout():
+    session.pop('user_id', None)
+    flash('You have been logged out successfully', 'success')
+    return redirect(url_for('sign_in'))
+
+@app.route("/dashboard")
+def dashboard():
     # Add authentication check
     if 'user_id' in session:
         user_id = session['user_id']
@@ -55,7 +62,7 @@ def home():
         result = list(conn.execute(query).fetchone())
         if result:
             username = result[0]
-            return render_template('homepage.html', username = username)
+            return render_template('dashboard.html', username = username)
     else:
         flash('Please sign in to access the homepage', 'error')
         return redirect(url_for('sign_in'))
