@@ -1,7 +1,10 @@
 from sqlalchemy import create_engine, text
+import os
+
+sql_url = os.environ['SQL_URL']
 
 def get_connection():
-    engine = create_engine("mysql+pymysql://u366979093_ironman:IronTest123@62.72.28.1/u366979093_ironmantest", isolation_level="AUTOCOMMIT")
+    engine = create_engine(sql_url, isolation_level="AUTOCOMMIT")
     conn = engine.connect()
     return conn
 
