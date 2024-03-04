@@ -5,6 +5,10 @@ from sqlalchemy import text
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Make sure to set a secure secret key
 
+@app.route("/")
+def landing_page():
+    return render_template('landing_page.html')
+
 @app.route("/signin", methods=['GET', 'POST'])
 def sign_in():
     if request.method == 'POST':
