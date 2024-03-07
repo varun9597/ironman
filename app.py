@@ -78,6 +78,56 @@ def fetch_user_name():
             name = result[0]
         return name
 
+@app.route("/removeflat", methods=['GET','POST'])
+def removeflat():
+    user = fetch_user_name()
+    if 'user_id' in session:
+        user_id = session['user_id']
+        if request.method == 'POST':
+            flat_to_remove = request.form['flatNumber']
+            print(flat_to_remove)
+            cust_soc_name = request.form['society']
+            print(cust_soc_name)
+            # Fetch soc_id from tbl_society
+            soc_id = None
+            cust_id_to_delete = None
+            try:
+                conn = get_connection()
+                soc_query = text(f"SELECT pk_soc_id FROM tbl_society WHERE LOWER(soc_name) = LOWER('{cust_soc_name}') and fk_user_id = '{user_id}';")
+                result = conn.execute(soc_query).fetchone()
+                print(str(result)+" fetching soc_id")
+                if result:
+                    soc_id = list(result)[0]
+                fetch_cust_id_to_delete_query = text(f"select fk_cust_id from tbl_cust_flat where lower(flat_no) = lower('{flat_to_remove}') and fk_user_id = '{user_id}' and fk_soc_id = '{soc_id}';")
+                result = conn.execute(fetch_cust_id_to_delete_query).fetchone()
+                if result:
+                    cust_id_to_delete = list(result)[0]
+                delete_flat_query = text(f"DELETE FROM tbl_cust_flat where lower(flat_no) = lower('{flat_to_remove}') and fk_user_id = '{user_id}' and fk_soc_id = '{soc_id}';")
+                result = conn.execute(delete_flat_query)
+                delete_cust_query = text(f"delete from tbl_customer where pk_cust_id = '{cust_id_to_delete}';")
+                result = conn.execute(delete_cust_query)
+            except Exception as e:
+                print(e)
+                return redirect(url_for("removeflat"))
+
+        #fetch society list
+        soc_list_query = text(f"SELECT soc_name from tbl_society where fk_user_id = '{user_id}';")
+        try:
+            conn = get_connection()
+            societies = [row[0] for row in conn.execute(soc_list_query).fetchall()]
+            print(societies)
+        except Exception as e:
+            print(e)
+            societies = []
+        
+        return render_template('remove_flat.html',societies=societies,username = user)
+
+    else:
+        #flash('Please sign in to access the homepage', 'error')
+        return redirect(url_for('sign_in'))
+
+
+
 @app.route("/addflat", methods=['GET', 'POST'])
 def addflat():
     user = fetch_user_name()

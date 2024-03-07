@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -7,16 +8,65 @@
     <!-- Bootstrap CSS link -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <style>
-        /* Add custom styles here if needed */
+        /* Custom styles */
         body {
             padding-top: 56px; /* Adjusted for the fixed navbar */
+            background-color: #f8f9fa; /* Light background color */
+        }
+
+        .navbar {
+            background-color: #ffffff; /* White navbar background */
+        }
+
+        .container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .btn-group-vertical {
+            margin-top: 20px;
+        }
+
+        .navbar-brand {
+            font-size: 24px;
+        }
+
+        .navbar-text {
+            font-size: 18px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding-top: 0; /* Remove padding for small screens */
+            }
+
+            .navbar {
+                background-color: #ffffff; /* White navbar background */
+            }
+
+            .container {
+                margin-top: 0; /* Remove margin for small screens */
+            }
+
+            .btn-group-vertical {
+                margin-top: 10px; /* Adjust margin for small screens */
+            }
+
+            .navbar-brand {
+                font-size: 20px;
+            }
+
+            .navbar-text {
+                font-size: 16px;
+            }
         }
     </style>
 </head>
-<body class="bg-light">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
         <a class="navbar-brand" href="#">IronMan App</a>
-        
+
         <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
             <ul class="navbar-nav">
                 <li class="nav-item dropdown">
@@ -33,13 +83,13 @@
         </div>
     </nav>
 
-    <div class="container mt-4">
+    <div class="container">
         <h1 class="display-4">IronMan App</h1>
         <h2 class="mb-4">Manage</h2>
         <div class="btn-group-vertical">
             <a href="/addsociety" class="btn btn-warning">Add Society</a>
             <a href="/addflat" class="btn btn-success">Add Flat</a>
-            <button class="btn btn-danger">Remove Flat</button>
+            <a href="/removeflat" class="btn btn-danger">Remove Flat</a>
             <button class="btn btn-primary">Collect Clothes</button>
             <button class="btn btn-warning">Generate Bill</button>
         </div>
@@ -50,4 +100,5 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 </body>
+
 </html>
