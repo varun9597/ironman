@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from database import get_connection
 from sqlalchemy import text
 import os
@@ -126,6 +126,29 @@ def removeflat():
         #flash('Please sign in to access the homepage', 'error')
         return redirect(url_for('sign_in'))
 
+@app.route('/get_flats', methods = ['POST'])
+def get_flats():
+    if 'user_id' in session:
+        user_id = session['user_id']
+        data = request.json
+        society_name = data.get('society')
+        #society_name = request.form.get('society')
+        print(society_name)
+        flat_list = []
+        if society_name:
+            try:
+                conn = get_connection()
+                flat_query = text(f"SELECT flat.flat_no FROM tbl_cust_flat flat join tbl_society soc on soc.pk_soc_id = flat.fk_soc_id WHERE LOWER(soc.soc_name) = LOWER('{society_name}') and flat.fk_user_id = {user_id};")
+                flats = [row[0] for row in conn.execute(flat_query).fetchall()]
+                print(flats)
+                flat_list = flats
+            except Exception as e:
+                print(e)
+                return redirect(url_for("addflat"))
+        # flat_list = ['Flat 101', 'Flat 102', 'Flat 103']
+        flat_list_json = jsonify({'flats': flat_list})
+        print(flat_list_json)
+        return jsonify(flat_list)
 
 
 @app.route("/addflat", methods=['GET', 'POST'])
@@ -236,6 +259,14 @@ def addsociety():
         #flash('Please sign in to access the homepage', 'error')
         return redirect(url_for('sign_in'))
 
+@app.route("/collectorder",methods = ['GET','POST'])
+def collectorder():
+    user = fetch_user_name()
+    if 'user_id' in session:
+        return render_template('collect_order.html',username = user)
+    else:
+        #flash('Please sign in to access the homepage', 'error')
+        return redirect(url_for('sign_in'))
 
 
 
