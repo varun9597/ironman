@@ -263,7 +263,17 @@ def addsociety():
 def collectorder():
     user = fetch_user_name()
     if 'user_id' in session:
-        return render_template('collect_order.html',username = user)
+        user_id = session['user_id']
+        #fetch society list
+        soc_list_query = text(f"SELECT soc_name from tbl_society where fk_user_id = '{user_id}';")
+        try:
+            conn = get_connection()
+            societies = [row[0] for row in conn.execute(soc_list_query).fetchall()]
+            print(societies)
+        except Exception as e:
+            print(e)
+            societies = []
+        return render_template('collect_order.html',username = user,societies=societies)
     else:
         #flash('Please sign in to access the homepage', 'error')
         return redirect(url_for('sign_in'))

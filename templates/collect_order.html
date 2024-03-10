@@ -34,6 +34,11 @@
             font-size: 18px;
         }
 
+        .mid-button-text {
+            font-size: 20px;
+            padding: 10px;
+        }
+
         @media (max-width: 768px) {
             body {
                 padding-top: 0; /* Remove padding for small screens */
@@ -59,6 +64,15 @@
                 font-size: 16px;
             }
         }
+        .mid-button-text {
+            margin: 0 5px;
+            font-weight: 600;
+        }
+
+        .total-count {
+            margin-top: 2rem;
+            font-size: 24px;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -82,31 +96,47 @@
     </nav>
     <div class="container mt-5">
         <h2>Collect Order</h2>
-
+        <form action="/collectorder" method="post">
+            <div class="form-group">
+                <label for="society">Select Society:</label>
+                <select class="form-control" id="society" name="society" required>
+                    <option value="" disabled selected>Select Society</option>
+                    {% for society in societies %}
+                        <option value="{{ society }}">{{ society }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="flatNumber">Select Flat Number:</label>
+                <select class="form-control" id="flatNumber" name="flatNumber" required>
+                    <!-- Flat numbers will be dynamically populated here -->
+                </select>
+            </div>
         <!-- Items with +/- buttons and counts -->
-        <div class="col">
+        <div class="row" style="align-content: center;">
             <div class="col-md-4">
                 <h4>Shirt</h4>
                 <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-primary" onclick="changeCount('shirt', 'decrement')">-</button>
-                    <span id="shirtCount" >0</span>
-                    <button type="button" class="btn btn-primary" onclick="changeCount('shirt', 'increment')">+</button>
+                    
+                    <button type="button" class="btn btn-outline-secondary" onclick="changeCount('shirt', 'decrement')">-</button>
+                    <span id="shirtCount" class="mid-button-text" >0</span>
+                    <button type="button" class="btn btn-outline-secondary" onclick="changeCount('shirt', 'increment')">+</button>
                 </div>
             </div>
             <div class="col-md-4">
                 <h4>Pant</h4>
                 <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-primary" onclick="changeCount('pant', 'decrement')">-</button>
-                    <span id="pantCount" >0</span>
-                    <button type="button" class="btn btn-primary" onclick="changeCount('pant', 'increment')">+</button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="changeCount('pant', 'decrement')">-</button>
+                    <span id="pantCount" class="mid-button-text" >0</span>
+                    <button type="button" class="btn btn-outline-secondary" onclick="changeCount('pant', 'increment')">+</button>
                 </div>
             </div>
             <div class="col-md-4">
                 <h4>Other</h4>
                 <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-primary" onclick="changeCount('other', 'decrement')">-</button>
-                    <span id="otherCount" >0</span>
-                    <button type="button" class="btn btn-primary" onclick="changeCount('other', 'increment')">+</button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="changeCount('other', 'decrement')">-</button>
+                    <span id="otherCount" class="mid-button-text">0</span>
+                    <button type="button" class="btn btn-outline-secondary" onclick="changeCount('other', 'increment')">+</button>
                 </div>
             </div>
         </div>
@@ -114,11 +144,46 @@
         <!-- Total count -->
         <div class="mt-4">
             <h4>Total Count:</h4>
-            <p id="totalCount" class="badge badge-primary">0</p>
+            <p id="totalCount" class="total-count">0</p>
         </div>
+        <button type="submit" class="btn btn-primary">Collect Order</button>
+        </form>
     </div>
 
     <!-- Your custom script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('society').addEventListener('change', function() {
+                var societySelected = this.value;
+                console.log(societySelected)
+
+                // Fetch flats using fetch()
+                fetch('/get_flats', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ society: societySelected }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Populate the flat numbers dropdown
+                    
+                    var flatNumberDropdown = document.getElementById('flatNumber');
+                    flatNumberDropdown.innerHTML = '<option value="" disabled selected>Select Flat Number</option>';
+                    
+                    // Iterate over the received flat numbers and append them to the dropdown
+                    data.forEach(function(flatNumber) {
+                        var option = document.createElement('option');
+                        option.value = flatNumber;
+                        option.textContent = flatNumber;
+                        flatNumberDropdown.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        });
+    </script>
     <script>
         // Object to store counts
         var counts = {
