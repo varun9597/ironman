@@ -106,6 +106,7 @@ def removeflat():
                 result = conn.execute(delete_flat_query)
                 delete_cust_query = text(f"delete from tbl_customer where pk_cust_id = '{cust_id_to_delete}';")
                 result = conn.execute(delete_cust_query)
+                flash('Flat removed successfully', 'success')
             except Exception as e:
                 print(e)
                 return redirect(url_for("removeflat"))
@@ -249,7 +250,9 @@ def addsociety():
                     print(str(result)+ " insert soc details")
                     soc_id = result.lastrowid
                     print(str(soc_id)+" soc_id")
-                    flash("New society added.","success")
+                    add_rate_card_query = text(f"INSERT INTO tbl_rate_card(fk_item_id,fk_user_id,fk_soc_id) SELECT tbl_items.pk_item_id as fk_item_id, '{user_id}' as fk_user_id, '{soc_id}' as fk_soc_id FROM tbl_items;")
+                    conn.execute(add_rate_card_query)
+                    flash("New society added and rate card created.","success")
                     return redirect(url_for("addsociety"))
                 except Exception as e:
                     print(e)
@@ -258,6 +261,66 @@ def addsociety():
     else:
         #flash('Please sign in to access the homepage', 'error')
         return redirect(url_for('sign_in'))
+
+
+@app.route("/modifyratecard", methods = ['GET','POST'])
+def modifyratecard():
+    user = fetch_user_name()
+    if 'user_id' in session:
+        user_id = session['user_id']
+        if request.method == 'POST':
+            soc_name = request.form['society']
+            data = request.form.to_dict()
+            data.pop('society',None)
+            print(data)
+            try:
+                conn = get_connection()
+                for item_name, new_rate in data.items():
+                    update_query = text(f"UPDATE tbl_rate_card SET rate = '{new_rate}' WHERE fk_user_id = '{user_id}' AND fk_soc_id = (SELECT pk_soc_id FROM tbl_society WHERE LOWER(soc_name) = LOWER('{soc_name}')) AND fk_item_id = (SELECT pk_item_id FROM tbl_items WHERE LOWER(item_name) = LOWER('{item_name}'));")
+                    conn.execute(update_query)
+                flash('Rate card updated successfully', 'success')
+            except Exception as e:
+                print(e)
+                return redirect(url_for('modifyratecard'))
+         #fetch society list
+        soc_list_query = text(f"SELECT soc_name from tbl_society where fk_user_id = '{user_id}';")
+        try:
+            conn = get_connection()
+            societies = [row[0] for row in conn.execute(soc_list_query).fetchall()]
+            print(societies)
+        except Exception as e:
+            print(e)
+            societies = []
+        return render_template('mod_rate_card.html',username = user,societies=societies)
+    else:
+        #flash('Please sign in to access the homepage', 'error')
+        return redirect(url_for('sign_in'))
+
+@app.route('/get_item_list', methods = ['POST'])
+def get_item_list():
+    if 'user_id' in session:
+        user_id = session['user_id']
+        data = request.json
+        society_name = data.get('society')
+        #society_name = request.form.get('society')
+        print(society_name)
+        item_list = {}
+        if society_name:
+            try:
+                conn = get_connection()
+                item_query = text(f"SELECT items.item_name, rates.rate FROM tbl_rate_card rates JOIN tbl_items items ON items.pk_item_id = rates.fk_item_id JOIN tbl_society soc ON rates.fk_soc_id = soc.pk_soc_id WHERE rates.fk_user_id = {user_id} AND LOWER(soc.soc_name) = LOWER('{society_name}');")
+                items = conn.execute(item_query).fetchall()
+                item_list = {item[0]: str(item[1]) for item in items}
+                print(item_list)
+            except Exception as e:
+                print(e)
+                return redirect(url_for("modifyratecard"))
+        #flat_list = ['Flat 101', 'Flat 102', 'Flat 103']
+        item_list_json = jsonify(item_list)
+        print(item_list_json)
+        return jsonify(item_list)
+
+
 
 @app.route("/collectorder",methods = ['GET','POST'])
 def collectorder():

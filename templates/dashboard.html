@@ -24,7 +24,7 @@
         }
 
         .btn-group-vertical {
-            margin-top: 20px;
+            margin-top: 10px; /* Adjusted margin for buttons */
         }
 
         .navbar-brand {
@@ -86,12 +86,26 @@
     <div class="container">
         <h1 class="display-4">IronMan App</h1>
         <h2 class="mb-4">Manage</h2>
-        <div class="btn-group-vertical">
-            <a href="/addsociety" class="btn btn-warning">Add Society</a>
-            <a href="/addflat" class="btn btn-success">Add Flat</a>
-            <a href="/removeflat" class="btn btn-danger">Remove Flat</a>
-            <button class="btn btn-primary">Collect Clothes</button>
-            <button class="btn btn-warning">Generate Bill</button>
+        <div class="row">
+            <div class="col">
+                <div class="btn-group-vertical">
+                    <a href="/addsociety" class="btn btn-warning">Add Society</a>
+                    <a href="/addflat" class="btn btn-success">Add Flat</a>
+                    <a href="/removeflat" class="btn btn-danger">Remove Flat</a>
+                </div>
+            </div>
+            <div class="col">
+                <div class="btn-group-vertical">
+                    <a href="/additem" class="btn btn-danger">Add Item</a>
+                    <a href="/modifyratecard" class="btn btn-success">Modify Rate Card</a>
+                </div>
+            </div>
+            <div class="col">
+                <div class="btn-group-vertical">
+                    <button class="btn btn-primary">Collect Clothes</button>
+                    <button class="btn btn-warning">Generate Bill</button>
+                </div>
+            </div>
         </div>
     </div>
 
