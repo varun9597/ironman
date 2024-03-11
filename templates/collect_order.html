@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -64,6 +65,7 @@
                 font-size: 16px;
             }
         }
+
         .mid-button-text {
             margin: 0 5px;
             font-weight: 600;
@@ -75,6 +77,7 @@
         }
     </style>
 </head>
+
 <body class="bg-light">
     <nav class="navbar navbar-expand-lg navbar-light fixed-top">
         <a class="navbar-brand" href="/dashboard">IronMan App</a>
@@ -82,7 +85,8 @@
         <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
             <ul class="navbar-nav">
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
                         <span class="navbar-text mr-3">
                             Welcome, {{ username }}
                         </span>
@@ -96,13 +100,13 @@
     </nav>
     <div class="container mt-5">
         <h2>Collect Order</h2>
-        <form action="/collectorder" method="post">
+        <form id="orderForm" action="/collectorder" method="post">
             <div class="form-group">
                 <label for="society">Select Society:</label>
                 <select class="form-control" id="society" name="society" required>
                     <option value="" disabled selected>Select Society</option>
                     {% for society in societies %}
-                        <option value="{{ society }}">{{ society }}</option>
+                    <option value="{{ society }}">{{ society }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -112,50 +116,29 @@
                     <!-- Flat numbers will be dynamically populated here -->
                 </select>
             </div>
-        <!-- Items with +/- buttons and counts -->
-        <div class="row" style="align-content: center;">
-            <div class="col-md-4">
-                <h4>Shirt</h4>
-                <div class="btn-group" role="group">
-                    
-                    <button type="button" class="btn btn-outline-secondary" onclick="changeCount('shirt', 'decrement')">-</button>
-                    <span id="shirtCount" class="mid-button-text" >0</span>
-                    <button type="button" class="btn btn-outline-secondary" onclick="changeCount('shirt', 'increment')">+</button>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <h4>Pant</h4>
-                <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-outline-secondary" onclick="changeCount('pant', 'decrement')">-</button>
-                    <span id="pantCount" class="mid-button-text" >0</span>
-                    <button type="button" class="btn btn-outline-secondary" onclick="changeCount('pant', 'increment')">+</button>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <h4>Other</h4>
-                <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-outline-secondary" onclick="changeCount('other', 'decrement')">-</button>
-                    <span id="otherCount" class="mid-button-text">0</span>
-                    <button type="button" class="btn btn-outline-secondary" onclick="changeCount('other', 'increment')">+</button>
-                </div>
-            </div>
-        </div>
 
-        <!-- Total count -->
-        <div class="mt-4">
-            <h4>Total Count:</h4>
-            <p id="totalCount" class="total-count">0</p>
-        </div>
-        <button type="submit" class="btn btn-primary">Collect Order</button>
+            <!-- Items with +/- buttons and counts -->
+            <div class="row" style="align-content: center;">
+                <!-- Dynamically generated buttons based on JSON -->
+            </div>
+
+            <!-- Total count -->
+            <div class="mt-4">
+                <h4>Total Count:</h4>
+                <p id="totalCount" class="total-count">0</p>
+            </div>
+            <button type="submit" class="btn btn-primary">Collect Order</button>
         </form>
     </div>
 
     <!-- Your custom script -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('society').addEventListener('change', function() {
+        // Object to store counts
+        var counts = {};
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('society').addEventListener('change', function () {
                 var societySelected = this.value;
-                console.log(societySelected)
 
                 // Fetch flats using fetch()
                 fetch('/get_flats', {
@@ -165,48 +148,74 @@
                     },
                     body: JSON.stringify({ society: societySelected }),
                 })
-                .then(response => response.json())
-                .then(data => {
-                    // Populate the flat numbers dropdown
-                    
-                    var flatNumberDropdown = document.getElementById('flatNumber');
-                    flatNumberDropdown.innerHTML = '<option value="" disabled selected>Select Flat Number</option>';
-                    
-                    // Iterate over the received flat numbers and append them to the dropdown
-                    data.forEach(function(flatNumber) {
-                        var option = document.createElement('option');
-                        option.value = flatNumber;
-                        option.textContent = flatNumber;
-                        flatNumberDropdown.appendChild(option);
-                    });
+                    .then(response => response.json())
+                    .then(data => {
+                        // Populate the flat numbers dropdown
+                        var flatNumberDropdown = document.getElementById('flatNumber');
+                        flatNumberDropdown.innerHTML = '<option value="" disabled selected>Select Flat Number</option>';
+
+                        // Iterate over the received flat numbers and append them to the dropdown
+                        data.forEach(function (flatNumber) {
+                            var option = document.createElement('option');
+                            option.value = flatNumber;
+                            option.textContent = flatNumber;
+                            flatNumberDropdown.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error:', error));
+
+                // Fetch item details using fetch()
+                fetch('/get_item_list', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ society: societySelected }),
                 })
-                .catch(error => console.error('Error:', error));
+                    .then(response => response.json())
+                    .then(itemsJson => {
+                        counts = {}; // Reset counts
+                        // Dynamically generate buttons based on JSON
+                        var buttonsContainer = document.querySelector('.row');
+                        buttonsContainer.innerHTML = ''; // Clear previous content
+
+                        Object.keys(itemsJson).forEach(function (item) {
+                            counts[item] = 0; // Initialize counts
+                            // Create +/- buttons and counts
+                            var itemContent = `
+                                <div class="col-md-4">
+                                    <h4>${item}</h4>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-outline-secondary"
+                                            onclick="changeCount('${item}', 'decrement')">-</button>
+                                        <span id="${item}Count" class="mid-button-text">0</span>
+                                        <button type="button" class="btn btn-outline-secondary"
+                                            onclick="changeCount('${item}', 'increment')">+</button>
+                                    </div>
+                                </div>
+                            `;
+                            buttonsContainer.innerHTML += itemContent;
+                        });
+                    })
+                    .catch(error => console.error('Error:', error));
             });
-        });
-    </script>
-    <script>
-        // Object to store counts
-        var counts = {
-            shirt: 0,
-            pant: 0,
-            other: 0
-        };
 
-        // Function to update counts and total
-        function changeCount(item, action) {
-            if (action === 'increment') {
-                counts[item]++;
-            } else if (action === 'decrement' && counts[item] > 0) {
-                counts[item]--;
+            // Function to update counts and total
+            function changeCount(item, action) {
+                if (action === 'increment') {
+                    counts[item]++;
+                } else if (action === 'decrement' && counts[item] > 0) {
+                    counts[item]--;
+                }
+
+                // Update counts on the page
+                document.getElementById(item + 'Count').textContent = counts[item];
+
+                // Update total count
+                var totalCount = Object.values(counts).reduce((total, count) => total + count, 0);
+                document.getElementById('totalCount').textContent = totalCount;
             }
-
-            // Update counts on the page
-            document.getElementById(item + 'Count').textContent = counts[item];
-
-            // Update total count
-            var totalCount = counts.shirt + counts.pant + counts.other;
-            document.getElementById('totalCount').textContent = totalCount;
-        }
+        });
     </script>
 
     <!-- Bootstrap JS and Popper.js scripts (required for Bootstrap components) -->
@@ -214,4 +223,5 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 </body>
+
 </html>
