@@ -171,9 +171,6 @@
             var itemRateStr = itemsJson[item];
             var itemRate = parseFloat(itemRateStr.replace(/'/g, '')); // Remove single quotes
 
-            console.log('Item:', item);
-            console.log('Item Rate:', itemRate);
-
             if (!isNaN(itemRate)) { // Check if itemRate is a valid number
                 var itemTotal = counts[item] * itemRate;
                 itemTotalElement.textContent = itemTotal.toFixed(2);

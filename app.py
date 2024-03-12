@@ -250,7 +250,7 @@ def addsociety():
                     print(str(result)+ " insert soc details")
                     soc_id = result.lastrowid
                     print(str(soc_id)+" soc_id")
-                    add_rate_card_query = text(f"INSERT INTO tbl_rate_card(fk_item_id,fk_user_id,fk_soc_id) SELECT tbl_items.pk_item_id as fk_item_id, '{user_id}' as fk_user_id, '{soc_id}' as fk_soc_id FROM tbl_items;")
+                    add_rate_card_query = text(f"INSERT INTO tbl_rate_card(fk_item_id,fk_user_id,fk_soc_id) SELECT tbl_items.pk_item_id as fk_item_id, '{user_id}' as fk_user_id, '{soc_id}' as fk_soc_id FROM tbl_items WHERE fk_user_id = '{user_id}';")
                     conn.execute(add_rate_card_query)
                     flash("New society added and rate card created.","success")
                     return redirect(url_for("addsociety"))
@@ -276,7 +276,7 @@ def modifyratecard():
             try:
                 conn = get_connection()
                 for item_name, new_rate in data.items():
-                    update_query = text(f"UPDATE tbl_rate_card SET rate = '{new_rate}' WHERE fk_user_id = '{user_id}' AND fk_soc_id = (SELECT pk_soc_id FROM tbl_society WHERE LOWER(soc_name) = LOWER('{soc_name}')) AND fk_item_id = (SELECT pk_item_id FROM tbl_items WHERE LOWER(item_name) = LOWER('{item_name}'));")
+                    update_query = text(f"UPDATE tbl_rate_card SET rate = '{new_rate}', update_date = CURRENT_TIMESTAMP WHERE fk_user_id = '{user_id}' AND fk_soc_id = (SELECT pk_soc_id FROM tbl_society WHERE LOWER(soc_name) = LOWER('{soc_name}')) AND fk_item_id = (SELECT pk_item_id FROM tbl_items WHERE LOWER(item_name) = LOWER('{item_name}'));")
                     conn.execute(update_query)
                 flash('Rate card updated successfully', 'success')
             except Exception as e:
@@ -360,6 +360,55 @@ def oldcollectorder():
     else:
         #flash('Please sign in to access the homepage', 'error')
         return redirect(url_for('sign_in'))
+
+
+@app.route("/additem", methods = ['GET','POST'])
+def additem():
+    user = fetch_user_name()
+    if 'user_id' in session:
+        user_id = session['user_id']
+        if request.method == 'POST':
+            item_name = request.form['item']
+            print(item_name)
+            item_id = None
+
+            try:
+                conn = get_connection()
+                item_query = text(f"SELECT pk_item_id FROM tbl_items WHERE LOWER(item_name) = LOWER('{item_name}') and fk_user_id = '{user_id}';")
+                result = conn.execute(item_query).fetchone()
+                print(str(result)+" fetching item_id")
+                if result:
+                    item_id = list(result)[0]
+                    flash("Item Name already exists.","error")
+                    return redirect(url_for("additem"))
+            except Exception as e:
+                print(e)
+                return redirect(url_for("additem"))
+
+            if item_id is None:
+                # If the society doesn't exist, add a new entry in tbl_society
+                try:
+                    conn = get_connection()
+                    add_item_query = text(f"INSERT INTO tbl_items (item_name,fk_user_id) VALUES ('{item_name}','{user_id}');")
+                    result=conn.execute(add_item_query)
+                    print(str(result)+ " insert item details")
+                    item_id = result.lastrowid
+                    print(str(item_id)+" item_id")
+                    soc_list_query = text(f"SELECT pk_soc_id from tbl_society where fk_user_id = '{user_id}';")
+                    societies = [row[0] for row in conn.execute(soc_list_query).fetchall()]
+                    for soc_id in societies:
+                        add_rate_card_query = text(f"INSERT INTO tbl_rate_card(fk_item_id,fk_user_id,fk_soc_id) SELECT '{item_id}' as fk_item_id, '{user_id}' as fk_user_id, '{soc_id}' as fk_soc_id;")
+                        conn.execute(add_rate_card_query)
+                    flash("New Item added.","success")
+                    return redirect(url_for("additem"))
+                except Exception as e:
+                    print(e)
+                    return redirect(url_for("additem"))
+        return render_template('add_item.html',username = user)
+    else:
+        #flash('Please sign in to access the homepage', 'error')
+        return redirect(url_for('sign_in'))
+
 
 
 
