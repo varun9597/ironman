@@ -1,0 +1,107 @@
+    <!-- Your custom script -->
+    <script>
+        // Object to store counts
+        var counts = {};
+        var itemsJson = {};
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('society').addEventListener('change', function () {
+                var societySelected = this.value;
+    
+                // Fetch flats using fetch()
+                fetch('/get_flats', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ society: societySelected }),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Populate the flat numbers dropdown
+                        var flatNumberDropdown = document.getElementById('flatNumber');
+                        flatNumberDropdown.innerHTML = '<option value="" disabled selected>Select Flat Number</option>';
+    
+                        // Iterate over the received flat numbers and append them to the dropdown
+                        data.forEach(function (flatNumber) {
+                            var option = document.createElement('option');
+                            option.value = flatNumber;
+                            option.textContent = flatNumber;
+                            flatNumberDropdown.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error:', error));
+    
+                // Fetch item details using fetch()
+                fetch('/get_item_list', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ society: societySelected }),
+                })
+                    .then(response => response.json())
+                    .then(itemsJson => {
+                        counts = {}; // Reset counts
+                        // Dynamically generate buttons based on JSON
+                        var buttonsContainer = document.querySelector('.row');
+                        buttonsContainer.innerHTML = ''; // Clear previous content
+                        console.log(itemsJson)
+                        Object.keys(itemsJson).forEach(function (item) {
+                            counts[item] = 0; // Initialize counts
+                            // Create +/- buttons and counts
+                            var itemContent = `
+                                <div class="col-md-4">
+                                    <h4>${item}</h4>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-outline-secondary"
+                                            onclick="changeCount('${item}', 'decrement')">-</button>
+                                        <span id="${item}Count" class="mid-button-text">0</span>
+                                        <button type="button" class="btn btn-outline-secondary"
+                                            onclick="changeCount('${item}', 'increment')">+</button>
+                                    </div>
+                                    <p id="${item}Total" class="mid-button-text">0.0</p>
+                                </div>
+                            `;
+                            buttonsContainer.innerHTML += itemContent;
+                        });
+                    })
+                    .catch(error => console.error('Error:', error));
+            });
+    
+        });
+    </script>
+    
+    <!-- Second script block for updating counts and total -->
+    <script>
+        // Function to update counts and total
+        function changeCount(item, action) {
+            if (action === 'increment') {
+                counts[item]++;
+            } else if (action === 'decrement' && counts[item] > 0) {
+                counts[item]--;
+            }
+    
+            // Update counts on the page
+            document.getElementById(item + 'Count').textContent = counts[item];
+    
+            // Calculate and update total for the item
+            var itemRateStr = itemsJson[item];
+            var itemRate = parseFloat(itemRateStr.replace(/'/g, '')); // Remove single quotes
+    
+            console.log('Item:', item);
+            console.log('Item Rate:', itemRate);
+    
+            if (!isNaN(itemRate)) { // Check if itemRate is a valid number
+                var itemTotal = counts[item] * itemRate;
+                document.getElementById(item + 'Total').textContent = itemTotal.toFixed(2);
+            } else {
+                // Handle the case where itemRate is not a valid number (e.g., show an error message)
+                console.error('Invalid Item Rate:', itemRateStr);
+                document.getElementById(item + 'Total').textContent = 'Error';
+            }
+    
+            // Update total count
+            var totalCount = Object.values(counts).reduce((total, count) => total + count, 0);
+            document.getElementById('totalCount').textContent = totalCount;
+        }
+    </script>

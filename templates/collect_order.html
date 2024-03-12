@@ -71,8 +71,11 @@
             font-weight: 600;
         }
 
+        .total-amount {
+            font-size: 24px;
+        }
+
         .total-count {
-            margin-top: 2rem;
             font-size: 24px;
         }
     </style>
@@ -123,100 +126,155 @@
             </div>
 
             <!-- Total count -->
-            <div class="mt-4">
-                <h4>Total Count:</h4>
-                <p id="totalCount" class="total-count">0</p>
+            <div class="row mt-4">
+                <!-- Total Count -->
+                <div class="col-md-6">
+                    <h4>Total Count:</h4>
+                    <p id="totalCount" class="total-count">0</p>
+                </div>
+            
+                <!-- Total Amount -->
+                <div class="col-md-6">
+                    <h4>Total Amount:</h4>
+                    <p id="totalAmount" class="total-amount">0.00</p>
+                </div>
             </div>
             <button type="submit" class="btn btn-primary">Collect Order</button>
         </form>
     </div>
 
-    <!-- Your custom script -->
-    <script>
-        // Object to store counts
-        var counts = {};
 
-        document.addEventListener('DOMContentLoaded', function () {
-            document.getElementById('society').addEventListener('change', function () {
-                var societySelected = this.value;
+<!-- Script block for the entire logic -->
+<script>
+    // Object to store counts
+    var counts = {};
+    // Object to store item rates
+    var itemsJson = {};
 
-                // Fetch flats using fetch()
-                fetch('/get_flats', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ society: societySelected }),
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        // Populate the flat numbers dropdown
-                        var flatNumberDropdown = document.getElementById('flatNumber');
-                        flatNumberDropdown.innerHTML = '<option value="" disabled selected>Select Flat Number</option>';
+    // Function to update counts and total
+    function changeCount(item, action) {
+        if (action === 'increment') {
+            counts[item]++;
+        } else if (action === 'decrement' && counts[item] > 0) {
+            counts[item]--;
+        }
 
-                        // Iterate over the received flat numbers and append them to the dropdown
-                        data.forEach(function (flatNumber) {
-                            var option = document.createElement('option');
-                            option.value = flatNumber;
-                            option.textContent = flatNumber;
-                            flatNumberDropdown.appendChild(option);
-                        });
-                    })
-                    .catch(error => console.error('Error:', error));
+        // Update counts on the page
+        var countElement = document.getElementById(item + 'Count');
+        if (countElement) {
+            countElement.textContent = counts[item];
+        }
 
-                // Fetch item details using fetch()
-                fetch('/get_item_list', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ society: societySelected }),
-                })
-                    .then(response => response.json())
-                    .then(itemsJson => {
-                        counts = {}; // Reset counts
-                        // Dynamically generate buttons based on JSON
-                        var buttonsContainer = document.querySelector('.row');
-                        buttonsContainer.innerHTML = ''; // Clear previous content
+        // Calculate and update total for the item
+        var itemTotalElement = document.getElementById(item + 'Total');
+        if (itemTotalElement) {
+            var itemRateStr = itemsJson[item];
+            var itemRate = parseFloat(itemRateStr.replace(/'/g, '')); // Remove single quotes
 
-                        Object.keys(itemsJson).forEach(function (item) {
-                            counts[item] = 0; // Initialize counts
-                            // Create +/- buttons and counts
-                            var itemContent = `
-                                <div class="col-md-4">
-                                    <h4>${item}</h4>
-                                    <div class="btn-group" role="group">
-                                        <button type="button" class="btn btn-outline-secondary"
-                                            onclick="changeCount('${item}', 'decrement')">-</button>
-                                        <span id="${item}Count" class="mid-button-text">0</span>
-                                        <button type="button" class="btn btn-outline-secondary"
-                                            onclick="changeCount('${item}', 'increment')">+</button>
-                                    </div>
-                                </div>
-                            `;
-                            buttonsContainer.innerHTML += itemContent;
-                        });
-                    })
-                    .catch(error => console.error('Error:', error));
-            });
+            console.log('Item:', item);
+            console.log('Item Rate:', itemRate);
 
-            // Function to update counts and total
-            function changeCount(item, action) {
-                if (action === 'increment') {
-                    counts[item]++;
-                } else if (action === 'decrement' && counts[item] > 0) {
-                    counts[item]--;
-                }
-
-                // Update counts on the page
-                document.getElementById(item + 'Count').textContent = counts[item];
-
-                // Update total count
-                var totalCount = Object.values(counts).reduce((total, count) => total + count, 0);
-                document.getElementById('totalCount').textContent = totalCount;
+            if (!isNaN(itemRate)) { // Check if itemRate is a valid number
+                var itemTotal = counts[item] * itemRate;
+                itemTotalElement.textContent = itemTotal.toFixed(2);
+            } else {
+                // Handle the case where itemRate is not a valid number (e.g., show an error message)
+                console.error('Invalid Item Rate:', itemRateStr);
+                itemTotalElement.textContent = 'Error';
             }
+        }
+
+        // Update total count
+        var totalCount = Object.values(counts).reduce((total, count) => total + count, 0);
+        var totalCountElement = document.getElementById('totalCount');
+        if (totalCountElement) {
+            totalCountElement.textContent = totalCount;
+        }
+
+        // Calculate and update total amount
+        var totalAmount = Object.keys(itemsJson).reduce(function (total, item) {
+            var rate = parseFloat(itemsJson[item].replace(/'/g, '')); // Remove single quotes
+            return total + (counts[item] * rate);
+        }, 0);
+
+        var totalAmountElement = document.getElementById('totalAmount');
+        if (totalAmountElement) {
+            totalAmountElement.textContent = totalAmount.toFixed(2);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('society').addEventListener('change', function () {
+            var societySelected = this.value;
+
+            // Fetch flats using fetch()
+            fetch('/get_flats', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ society: societySelected }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Populate the flat numbers dropdown
+                var flatNumberDropdown = document.getElementById('flatNumber');
+                if (flatNumberDropdown) {
+                    flatNumberDropdown.innerHTML = '<option value="" disabled selected>Select Flat Number</option>';
+
+                    // Iterate over the received flat numbers and append them to the dropdown
+                    data.forEach(function (flatNumber) {
+                        var option = document.createElement('option');
+                        option.value = flatNumber;
+                        option.textContent = flatNumber;
+                        flatNumberDropdown.appendChild(option);
+                    });
+                }
+            })
+            .catch(error => console.error('Error:', error));
+
+            // Fetch item details using fetch()
+            fetch('/get_item_list', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ society: societySelected }),
+            })
+            .then(response => response.json())
+            .then(itemsJsonResponse => {
+                itemsJson = itemsJsonResponse; // Set itemsJson globally
+
+                counts = {}; // Reset counts
+                // Dynamically generate buttons based on JSON
+                var buttonsContainer = document.querySelector('.row');
+                if (buttonsContainer) {
+                    buttonsContainer.innerHTML = ''; // Clear previous content
+
+                    Object.keys(itemsJson).forEach(function (item) {
+                        counts[item] = 0; // Initialize counts
+                        // Create +/- buttons and counts
+                        var itemContent = `
+                            <div class="col-md-4">
+                                <h4>${item}</h4>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-outline-secondary"
+                                        onclick="changeCount('${item}', 'decrement')">-</button>
+                                    <span id="${item}Count" class="mid-button-text">0</span>
+                                    <button type="button" class="btn btn-outline-secondary"
+                                        onclick="changeCount('${item}', 'increment')">+</button>
+                                </div>
+                                <p id="${item}Total" class="mid-button-text">0.00</p>
+                            </div>
+                        `;
+                        buttonsContainer.innerHTML += itemContent;
+                    });
+                }
+            })
+            .catch(error => console.error('Error:', error));
         });
-    </script>
+    });
+</script>
 
     <!-- Bootstrap JS and Popper.js scripts (required for Bootstrap components) -->
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
