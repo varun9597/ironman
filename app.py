@@ -308,6 +308,30 @@ def get_item_list():
         if society_name:
             try:
                 conn = get_connection()
+                item_query = text(f"SELECT items.item_name, rates.rate FROM tbl_rate_card rates JOIN tbl_items items ON items.pk_item_id = rates.fk_item_id JOIN tbl_society soc ON rates.fk_soc_id = soc.pk_soc_id WHERE rates.fk_user_id = {user_id} AND LOWER(soc.soc_name) = LOWER('{society_name}') and rates.rate > 0;")
+                items = conn.execute(item_query).fetchall()
+                item_list = {item[0]: str(item[1]) for item in items}
+                print(item_list)
+            except Exception as e:
+                print(e)
+                return redirect(url_for("modifyratecard"))
+        #flat_list = ['Flat 101', 'Flat 102', 'Flat 103']
+        item_list_json = jsonify(item_list)
+        print(item_list_json)
+        return jsonify(item_list)
+
+@app.route('/get_item_list_rate_card', methods = ['POST'])
+def get_item_list_rate_card():
+    if 'user_id' in session:
+        user_id = session['user_id']
+        data = request.json
+        society_name = data.get('society')
+        #society_name = request.form.get('society')
+        print(society_name)
+        item_list = {}
+        if society_name:
+            try:
+                conn = get_connection()
                 item_query = text(f"SELECT items.item_name, rates.rate FROM tbl_rate_card rates JOIN tbl_items items ON items.pk_item_id = rates.fk_item_id JOIN tbl_society soc ON rates.fk_soc_id = soc.pk_soc_id WHERE rates.fk_user_id = {user_id} AND LOWER(soc.soc_name) = LOWER('{society_name}');")
                 items = conn.execute(item_query).fetchall()
                 item_list = {item[0]: str(item[1]) for item in items}
