@@ -80,7 +80,8 @@
         }
     </style>
 </head>
-
+{% extends "layout.html" %}
+{% block body %}
 <body class="bg-light">
     <nav class="navbar navbar-expand-lg navbar-light fixed-top">
         <a class="navbar-brand" href="/dashboard">IronMan App</a>
@@ -139,7 +140,13 @@
                     <p id="totalAmount" class="total-amount">0.00</p>
                 </div>
             </div>
-            <button type="submit" class="btn btn-primary">Collect Order</button>
+
+            <!-- Hidden input fields for additional fields -->
+            <input type="hidden" id="totalCountInput" name="totalCount">
+            <input type="hidden" id="totalAmountInput" name="totalAmount">
+            <input type="hidden" id="itemDetailsInput" name="itemDetails">
+            
+            <button type="button" class="btn btn-primary" onclick="submitForm()">Collect Order</button>
         </form>
     </div>
 
@@ -271,6 +278,30 @@
             .catch(error => console.error('Error:', error));
         });
     });
+
+    // Function to submit the form
+    function submitForm() {
+        // Get the total count and total amount
+        var totalCount = document.getElementById('totalCount').textContent;
+        var totalAmount = document.getElementById('totalAmount').textContent;
+
+        // Get the item name, count, and total for each item
+        var itemDetails = [];
+        Object.keys(counts).forEach(function(item) {
+            var itemName = item;
+            var itemCount = counts[item];
+            var itemTotal = document.getElementById(item + 'Total').textContent;
+            itemDetails.push({ itemName: itemName, itemCount: itemCount, itemTotal: itemTotal });
+        });
+
+        // Set the values of the hidden input fields in the form
+        document.getElementById('totalCountInput').value = totalCount;
+        document.getElementById('totalAmountInput').value = totalAmount;
+        document.getElementById('itemDetailsInput').value = JSON.stringify(itemDetails);
+
+        // Submit the form
+        document.getElementById('orderForm').submit();
+    }
 </script>
 
     <!-- Bootstrap JS and Popper.js scripts (required for Bootstrap components) -->
@@ -278,5 +309,5 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 </body>
-
+{% endblock %}
 </html>

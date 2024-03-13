@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from database import get_connection
 from sqlalchemy import text
 import os
+import ast
 
 
 app = Flask(__name__)
@@ -351,6 +352,40 @@ def collectorder():
     user = fetch_user_name()
     if 'user_id' in session:
         user_id = session['user_id']
+        if request.method == 'POST' :
+            society = request.form['society']
+            print(society)
+            flatNumber = request.form['flatNumber']
+            print(flatNumber)
+            totalCount = request.form['totalCount']
+            print(totalCount)
+            totalAmount = request.form['totalAmount']
+            print(totalAmount)
+            itemDetails = request.form['itemDetails']
+            print(itemDetails)
+            # itemDetails_list = ast.literal_eval(itemDetails)
+            # print(itemDetails_list)
+            filtered_itemsDetails = [item for item in ast.literal_eval(itemDetails) if item['itemCount'] != 0]
+            print(len(filtered_itemsDetails))
+            if(len(filtered_itemsDetails) > 0):
+
+                try:
+                    conn = get_connection()
+                    #creating order in tbl_orders
+                    order_query = text(f"INSERT INTO tbl_orders(fk_cust_id, fk_user_id, total_amt) select cflat.fk_cust_id, {user_id} as fk_user_id, {totalAmount} as total_amt from tbl_cust_flat cflat join tbl_society soc on soc.pk_soc_id = cflat.fk_soc_id where LOWER(soc.soc_name) = LOWER('{society}') and LOWER(cflat.flat_no) = LOWER('{flatNumber}');")
+                    result = conn.execute(order_query)
+                    order_id = result.lastrowid
+                    print(order_id)
+                    #inserting item_order in tbl_order_items
+                    for item in filtered_itemsDetails:
+                        order_item_query = text(f"INSERT INTO tbl_order_items(fk_order_id, fk_item_id, quantity, price) SELECT {order_id} as fk_order_id, items.pk_item_id as fk_item_id, {item['itemCount']} as quantity, {item['itemTotal']} as price from tbl_items items where LOWER(items.item_name) = LOWER('{item['itemName']}') and items.fk_user_id = {user_id};")
+                        conn.execute(order_item_query)
+                    flash('Order Placed successfully', 'success')
+                except Exception as e:
+                    print(e)
+                    return redirect(url_for('collectorder'))
+            flash('Empty Order Cannot be placed', 'error')
+            return redirect(url_for('collectorder'))
         #fetch society list
         soc_list_query = text(f"SELECT soc_name from tbl_society where fk_user_id = '{user_id}';")
         try:
