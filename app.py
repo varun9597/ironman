@@ -384,7 +384,8 @@ def collectorder():
                 except Exception as e:
                     print(e)
                     return redirect(url_for('collectorder'))
-            flash('Empty Order Cannot be placed', 'error')
+            else:
+                flash('Empty Order Cannot be placed', 'error')
             return redirect(url_for('collectorder'))
         #fetch society list
         soc_list_query = text(f"SELECT soc_name from tbl_society where fk_user_id = '{user_id}';")
@@ -401,12 +402,24 @@ def collectorder():
         return redirect(url_for('sign_in'))
 
 
-@app.route("/oldcollectorder",methods = ['GET','POST'])
-def oldcollectorder():
+@app.route("/deleteorder", methods = ['GET','POST'])
+def deleteorder():
     user = fetch_user_name()
     if 'user_id' in session:
         user_id = session['user_id']
-        #fetch society list
+        if request.method == 'POST' :
+            data= request.json
+            order_list = data.get('orderIds')
+            print(order_list)
+            try:
+                conn = get_connection()
+                delete_query = text("DELETE FROM tbl_orders WHERE pk_order_id IN (%s);" % ','.join("'%s'" % id for id in order_list))
+                print(delete_query)
+                conn.execute(delete_query)
+            except Exception as e:
+                print(e)
+                return redirect(url_for('deleteorder'))
+     #fetch society list
         soc_list_query = text(f"SELECT soc_name from tbl_society where fk_user_id = '{user_id}';")
         try:
             conn = get_connection()
@@ -415,10 +428,35 @@ def oldcollectorder():
         except Exception as e:
             print(e)
             societies = []
-        return render_template('oldcollectorder.html',username = user,societies=societies)
+        return render_template('delete_order.html',username = user,societies=societies)
     else:
         #flash('Please sign in to access the homepage', 'error')
         return redirect(url_for('sign_in'))
+
+@app.route('/fetchorders',methods=['POST'])
+def fetch_orders():
+    if 'user_id' in session:
+        user_id = session['user_id']
+        data = request.json
+        print("fetchorders")
+        society = data.get('society')
+        flatno = data.get('flatNumber')
+        orders = []
+        try:
+            conn = get_connection()
+            fetch_order_query = text(f"SELECT o.pk_order_id as order_id,DATE_FORMAT(o.order_date, '%d/%m/%Y') as order_date, GROUP_CONCAT(CONCAT(i.item_name, ' × ', oi.quantity) SEPARATOR ', ') AS items_ordered, o.total_amt FROM tbl_orders o JOIN tbl_order_items oi ON o.pk_order_id = oi.fk_order_id JOIN tbl_items i ON oi.fk_item_id = i.pk_item_id JOIN tbl_cust_flat tcf on tcf.fk_cust_id = o.fk_cust_id join tbl_society ts on tcf.fk_soc_id = ts.pk_soc_id where o.fk_user_id = '{user_id}' and LOWER(tcf.flat_no) = LOWER('{flatno}') and LOWER(ts.soc_name) = LOWER('{society}') GROUP BY o.pk_order_id ORDER BY o.order_date DESC LIMIT 10;")
+            result = conn.execute(fetch_order_query).fetchall()
+            orders = [{'order_id': row[0], 'order_date': row[1], 'items_ordered': row[2],'total_amount':float(row[3])} for row in result]
+            print(orders)
+        except Exception as e:
+            print(e)
+            return redirect(url_for('deleteorder'))
+#         orders =  [
+#     {'order_id': 1, 'order_date': '2024-03-10', 'items_ordered': 'Pant X 4, Shirt X 2', 'total_amount': 100.00},
+#     {'order_id': 2, 'order_date': '2024-03-11', 'items_ordered': 'Shirt X 3', 'total_amount': 75.00},
+#     {'order_id': 3, 'order_date': '2024-03-12', 'items_ordered': 'Pant X 2, Shirt X 1', 'total_amount': 50.00}
+# ]
+        return jsonify(orders)
 
 
 @app.route("/additem", methods = ['GET','POST'])
