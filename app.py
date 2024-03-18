@@ -444,9 +444,9 @@ def fetch_orders():
         orders = []
         try:
             conn = get_connection()
-            fetch_order_query = text(f"SELECT o.pk_order_id as order_id,DATE_FORMAT(o.order_date, '%d/%m/%Y') as order_date, GROUP_CONCAT(CONCAT(i.item_name, ' × ', oi.quantity) SEPARATOR ', ') AS items_ordered, o.total_amt FROM tbl_orders o JOIN tbl_order_items oi ON o.pk_order_id = oi.fk_order_id JOIN tbl_items i ON oi.fk_item_id = i.pk_item_id JOIN tbl_cust_flat tcf on tcf.fk_cust_id = o.fk_cust_id join tbl_society ts on tcf.fk_soc_id = ts.pk_soc_id where o.fk_user_id = '{user_id}' and LOWER(tcf.flat_no) = LOWER('{flatno}') and LOWER(ts.soc_name) = LOWER('{society}') GROUP BY o.pk_order_id ORDER BY o.order_date DESC LIMIT 10;")
+            fetch_order_query = text(f"SELECT o.pk_order_id as order_id,DATE_FORMAT(o.order_date, '%d/%m/%Y') as order_date, GROUP_CONCAT(CONCAT(i.item_name, ' × ', oi.quantity) SEPARATOR ', ') AS items_ordered, o.total_amt, o.paid_amount, o.os_amount, o.bill_status FROM tbl_orders o JOIN tbl_order_items oi ON o.pk_order_id = oi.fk_order_id JOIN tbl_items i ON oi.fk_item_id = i.pk_item_id JOIN tbl_cust_flat tcf on tcf.fk_cust_id = o.fk_cust_id join tbl_society ts on tcf.fk_soc_id = ts.pk_soc_id where o.fk_user_id = '{user_id}' and LOWER(tcf.flat_no) = LOWER('{flatno}') and LOWER(ts.soc_name) = LOWER('{society}') and LOWER(bill_status) = 'not paid' GROUP BY o.pk_order_id ORDER BY o.order_date DESC LIMIT 10;")
             result = conn.execute(fetch_order_query).fetchall()
-            orders = [{'order_id': row[0], 'order_date': row[1], 'items_ordered': row[2],'total_amount':float(row[3])} for row in result]
+            orders = [{'order_id': row[0], 'order_date': row[1], 'items_ordered': row[2],'total_amount':float(row[3]),'paid_amount':float(row[4]),'os_amount':float(row[5]),'bill_status':row[6]} for row in result]
             print(orders)
         except Exception as e:
             print(e)

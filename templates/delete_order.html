@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Delete Order</title>
+    <title>View / Delete Order</title>
     <!-- Bootstrap CSS link -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <style>
@@ -103,7 +103,7 @@
         </div>
     </nav>
     <div class="container mt-5">
-        <h2>Delete Order</h2>
+        <h2>View / Delete Order</h2>
         <form id="orderForm" action="/delete_selected_orders" method="post">
             <div class="form-group">
                 <label for="society">Select Society:</label>
@@ -130,6 +130,9 @@
                             <th>Order Date</th>
                             <th>Items Ordered</th>
                             <th>Total Amount</th>
+                            <th>Paid Amount</th>
+                            <th>Outstanding Amount</th>
+                            <th>Bill Status</th>
                             <th>Delete</th>
                         </tr>
                     </thead>
@@ -208,6 +211,9 @@
                     row.insertCell().textContent = order.order_date;
                     row.insertCell().textContent = order.items_ordered;
                     row.insertCell().textContent = order.total_amount;
+                    row.insertCell().textContent = order.paid_amount;
+                    row.insertCell().textContent = order.os_amount;
+                    row.insertCell().textContent = order.bill_status;
                     var checkboxCell = row.insertCell();
                     var checkbox = document.createElement('input');
                     checkbox.type = 'checkbox';
