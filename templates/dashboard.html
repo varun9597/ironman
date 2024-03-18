@@ -66,7 +66,9 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-light fixed-top">
         <a class="navbar-brand" href="#">IronMan App</a>
-
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
         <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
             <ul class="navbar-nav">
                 <li class="nav-item dropdown">
@@ -83,28 +85,30 @@
         </div>
     </nav>
 
-    <div class="container">
+    <div class="container mt-5">
         <h1 class="display-4">IronMan App</h1>
         <h2 class="mb-4">Manage</h2>
         <div class="row">
-            <div class="col">
-                <div class="btn-group-vertical">
-                    <a href="/addsociety" class="btn btn-warning">Add Society</a>
-                    <a href="/addflat" class="btn btn-success">Add Flat</a>
-                    <a href="/removeflat" class="btn btn-danger">Remove Flat</a>
-                </div>
+            <div class="col-lg-4 col-md-6 mb-3">
+                <a href="/addsociety" class="btn btn-warning btn-block">Add Society</a>
             </div>
-            <div class="col">
-                <div class="btn-group-vertical">
-                    <a href="/additem" class="btn btn-danger">Add Item</a>
-                    <a href="/modifyratecard" class="btn btn-success">Modify Rate Card</a>
-                </div>
+            <div class="col-lg-4 col-md-6 mb-3">
+                <a href="/addflat" class="btn btn-success btn-block">Add Flat</a>
             </div>
-            <div class="col">
-                <div class="btn-group-vertical">
-                    <a href="/collectorder" class="btn btn-warning">Collect Order</a>
-                    <a href="/deleteorder" class="btn btn-danger">Delete Order</a>
-                </div>
+            <div class="col-lg-4 col-md-6 mb-3">
+                <a href="/removeflat" class="btn btn-danger btn-block">Remove Flat</a>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-3">
+                <a href="/additem" class="btn btn-success btn-block">Add Item</a>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-3">
+                <a href="/modifyratecard" class="btn btn-warning btn-block">Modify Rate Card</a>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-3">
+                <a href="/collectorder" class="btn btn-success btn-block">Collect Order</a>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-3">
+                <a href="/deleteorder" class="btn btn-danger btn-block">Delete Order</a>
             </div>
         </div>
     </div>
