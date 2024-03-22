@@ -3,7 +3,16 @@ from database import get_connection
 from sqlalchemy import text
 import os
 import ast
+from dotenv import load_dotenv, dotenv_values
+from razorpay_utils import Razor
 
+load_dotenv()
+
+rzr_key = os.getenv('RZRPAY_API_ID')
+rzr_secret = os.getenv('RZRPAY_API_SECRET')
+
+razor_api = {'key':rzr_key,'secret':rzr_secret}
+razor = Razor(razor_api)
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Make sure to set a secure secret key
@@ -152,7 +161,6 @@ def get_flats():
         print(flat_list_json)
         return jsonify(flat_list)
 
-
 @app.route("/addflat", methods=['GET', 'POST'])
 def addflat():
     user = fetch_user_name()
@@ -263,7 +271,6 @@ def addsociety():
         #flash('Please sign in to access the homepage', 'error')
         return redirect(url_for('sign_in'))
 
-
 @app.route("/modifyratecard", methods = ['GET','POST'])
 def modifyratecard():
     user = fetch_user_name()
@@ -345,8 +352,6 @@ def get_item_list_rate_card():
         print(item_list_json)
         return jsonify(item_list)
 
-
-
 @app.route("/collectorder",methods = ['GET','POST'])
 def collectorder():
     user = fetch_user_name()
@@ -401,7 +406,6 @@ def collectorder():
         #flash('Please sign in to access the homepage', 'error')
         return redirect(url_for('sign_in'))
 
-
 @app.route("/deleteorder", methods = ['GET','POST'])
 def deleteorder():
     user = fetch_user_name()
@@ -451,13 +455,8 @@ def fetch_orders():
         except Exception as e:
             print(e)
             return redirect(url_for('deleteorder'))
-#         orders =  [
-#     {'order_id': 1, 'order_date': '2024-03-10', 'items_ordered': 'Pant X 4, Shirt X 2', 'total_amount': 100.00},
-#     {'order_id': 2, 'order_date': '2024-03-11', 'items_ordered': 'Shirt X 3', 'total_amount': 75.00},
-#     {'order_id': 3, 'order_date': '2024-03-12', 'items_ordered': 'Pant X 2, Shirt X 1', 'total_amount': 50.00}
-# ]
-        return jsonify(orders)
 
+        return jsonify(orders)
 
 @app.route("/additem", methods = ['GET','POST'])
 def additem():
