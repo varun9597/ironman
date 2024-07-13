@@ -4,7 +4,7 @@ from sqlalchemy import text
 import os
 import ast
 from dotenv import load_dotenv, dotenv_values
-from razorpay_utils import Razor
+# from razorpay_utils import Razor
 
 load_dotenv()
 
@@ -12,7 +12,7 @@ rzr_key = os.getenv('RZRPAY_API_ID')
 rzr_secret = os.getenv('RZRPAY_API_SECRET')
 
 razor_api = {'key':rzr_key,'secret':rzr_secret}
-razor = Razor(razor_api)
+# razor = Razor(razor_api)
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Make sure to set a secure secret key
@@ -316,7 +316,10 @@ def get_item_list():
         if society_name:
             try:
                 conn = get_connection()
-                item_query = text(f"SELECT items.item_name, rates.rate FROM tbl_rate_card rates JOIN tbl_items items ON items.pk_item_id = rates.fk_item_id JOIN tbl_society soc ON rates.fk_soc_id = soc.pk_soc_id WHERE rates.fk_user_id = {user_id} AND LOWER(soc.soc_name) = LOWER('{society_name}') and rates.rate > 0;")
+                item_query = text(f"SELECT items.item_name, rates.rate FROM tbl_rate_card rates \
+                                  JOIN tbl_items items ON items.pk_item_id = rates.fk_item_id \
+                                  JOIN tbl_society soc ON rates.fk_soc_id = soc.pk_soc_id \
+                                  WHERE rates.fk_user_id = {user_id} AND LOWER(soc.soc_name) = LOWER('{society_name}') AND rates.rate > 0;")
                 items = conn.execute(item_query).fetchall()
                 item_list = {item[0]: str(item[1]) for item in items}
                 print(item_list)
@@ -505,8 +508,35 @@ def additem():
         #flash('Please sign in to access the homepage', 'error')
         return redirect(url_for('sign_in'))
 
+@app.route('/viewsociety', methods = ['GET'])
+def viewsociety():
+    if 'user_id' in session:
+        user_id = session['user_id']
+        # data = request.json
+        # society_name = data.get('society')
+        # #society_name = request.form.get('society')
+        # print(society_name)
+        soc_list = []
+        try:
+            conn = get_connection()
+            soc_query = text(f"SELECT soc_name from tbl_society where fk_user_id = {user_id};")
+            societies = [row[0] for row in conn.execute(soc_query).fetchall()]
+            print(societies)
+            soc_list = societies
+        except Exception as e:
+            print(e)
+            return redirect(url_for("addflat"))
+        # flat_list = ['Flat 101', 'Flat 102', 'Flat 103']
+        soc_list_json = jsonify({'soc': soc_list})
+        print(soc_list_json)
+        return jsonify(soc_list)
+        # return render_template('view_societies.html', societies = jsonify(soc_list))
+    return render_template('view_societies.html')
 
-
+@app.route('/societies')
+def societies_page():
+    user = fetch_user_name()
+    return render_template('view_societies.html', username = user)  # Render the HTML file
 
 if __name__ == "__main__":
     app.run(debug=True)
