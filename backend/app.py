@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
-from database import get_connection
+from backend.database import get_connection
 from sqlalchemy import text
 import os
 import ast
