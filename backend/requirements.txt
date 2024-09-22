@@ -4,3 +4,5 @@ pymysql
 sqlalchemy
 python-dotenv
 razorpay
+bcrypt
+flask-cors
