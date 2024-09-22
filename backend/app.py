@@ -1,9 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
-from backend.database import get_connection
+from database import get_connection
 from sqlalchemy import text
 import os
 import ast
 from dotenv import load_dotenv, dotenv_values
+from routes.auth_routes import auth_bp
+from flask_cors import CORS
 # from razorpay_utils import Razor
 
 load_dotenv()
@@ -16,6 +18,9 @@ razor_api = {'key':rzr_key,'secret':rzr_secret}
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Make sure to set a secure secret key
+CORS(app)
+
+app.register_blueprint(auth_bp)
 
 @app.route("/")
 def landing_page():

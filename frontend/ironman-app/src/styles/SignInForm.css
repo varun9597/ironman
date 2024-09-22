@@ -1,0 +1,82 @@
+/* Sign In Form Styles */
+.signin-form {
+    background: white;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    width: 100%;
+    margin: auto;
+    text-align: left;
+  }
+  
+  .signin-form h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+  }
+  
+  .form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    color: #333;
+    background-color: #f9f9f9;
+  }
+  
+  .show-password {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: -10px;
+  }
+  
+  .show-password input {
+    width: auto; /* Adjust width to auto for better fit */
+    cursor: pointer;
+    transform: scale(1.2); /*Increase size for better visibility */
+  }
+  
+  .show-password label {
+    font-size: 14px;
+    color: #666;
+    margin-top: 10px;
+  }
+  
+  .signin-form .btn {
+    display: block;
+    width: 100%;
+    background-color: #007bff;
+    color: white;
+    padding: 12px 0;
+    border-radius: 30px;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+  }
+  
+  .signin-form .btn:disabled {
+    background-color: #ddd;
+    cursor: not-allowed;
+  }
+  
+  .signin-form .btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0px 8px 15px rgba(0, 123, 255, 0.2);
+  }
+  
