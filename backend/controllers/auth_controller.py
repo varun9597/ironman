@@ -18,7 +18,7 @@ def sign_in():
 
         if user and bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
             session['user_id'] = user.user_id
-            return jsonify({'message': 'Login Success!', 'user_id': user.user_id}), 200
+            return jsonify({'message': 'Login Success!', 'user_id': user.user_id, 'role':user.role}), 200
         else:
             return jsonify({'message': 'Invalid username or password'}), 401
     except Exception as e:

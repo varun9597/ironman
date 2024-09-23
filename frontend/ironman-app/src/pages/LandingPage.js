@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import Header from './Header';
-import SignInForm from './SignInForm';
+import Header from '../components/Header';
+import SignInForm from '../components/SignInForm';
+import '../styles/LandingPage.css'
 
 function LandingPage() {
   const [showSignIn, setShowSignIn] = useState(false);
@@ -8,7 +9,7 @@ function LandingPage() {
   return (
     <div className="landing-page">
       <Header />
-      <div className="content">
+      <div className="landing-content">
         {!showSignIn ? (
           <>
             <p className="description">
@@ -28,3 +29,4 @@ function LandingPage() {
 }
 
 export default LandingPage;
+

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Column, Integer, String, Boolean,Enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -12,8 +12,8 @@ class User(Base):
     username = Column(String(255), unique=True, nullable=False)
     password = Column(String(255), nullable=False)
     is_active = Column(String(10), nullable=False, default='Y')
+    role = Column(Enum('resident', 'laundry-personnel', 'admin', name="user_roles"), nullable=False, default='resident')
 
-    
     def __repr__(self):
-        return f"<User(id={self.id}, name={self.name}, username={self.username})>"
+        return f"<User(id={self.user_id}, name={self.name}, username={self.username}, role={self.role})>"
 

@@ -1,0 +1,40 @@
+.header-bar {
+    background: linear-gradient(135deg, #f0f0f5, #e0e0eb); /* Soft gradient background */
+    color: #333;
+    box-shadow: none;
+    font-family: 'Roboto', sans-serif; /* Consistent font family */
+}
+
+.menu-button {
+    margin-right: 16px;
+}
+
+.title {
+    flex-grow: 1;
+    font-weight: bold;
+    color: #FFFF; /* Blue accent for the title */
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+}
+
+.header-button {
+    margin-right: 10px;
+    font-weight: 500;
+    color: #007BFF;
+    text-transform: none; /* Disable uppercase */
+}
+
+.profile-icon {
+    color: #007BFF;
+}
+
+.header-button:hover {
+    color: #0056b3; /* Slightly darker on hover */
+}
+
+.profile-icon:hover {
+    color: #0056b3;
+}

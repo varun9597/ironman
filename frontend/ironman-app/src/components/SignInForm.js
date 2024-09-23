@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import '../styles/SignInForm.css';
+import { useNavigate } from 'react-router-dom';
 
 
 function SignInForm() {
@@ -8,6 +9,7 @@ function SignInForm() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const handleSignIn = async () => {
     try {
@@ -16,6 +18,10 @@ function SignInForm() {
             password,
           });
       console.log('Login successful:', response.data);
+      const { user_id, role } = response.data;
+      console.log('Login successful:', response.data);
+
+      navigate(`/dashboard`, { state: { role } });
     } catch (err) {
       setError('Failed to sign in.');
     }

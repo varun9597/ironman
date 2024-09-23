@@ -22,6 +22,8 @@ CORS(app)
 
 app.register_blueprint(auth_bp)
 
+
+#OLD CODE
 @app.route("/")
 def landing_page():
     return render_template('landing_page.html')
