@@ -5,39 +5,36 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.society import Society
 from sqlalchemy import and_
 
-def fetch_society_list_con():
+def fetch_society_list_con(db):
     current_user = get_jwt_identity()
     print("Current User is -->", current_user)
     user_id = current_user['user_id']
 
-    session_db = get_session_db()
-
     try:
-        societies = session_db.query(Society.soc_name).filter(and_(Society.is_active == 'Y', User.user_id == user_id, User.is_active == 'Y')).all()
-        society_names = [item[0] for item in societies]
-        return jsonify({'message': "List of societies", 'data': society_names})    
+        societies = db.query(Society.society_id, Society.soc_name).filter(and_(Society.is_active == 'Y', User.user_id == user_id, User.is_active == 'Y')).order_by(Society.soc_name).all()
+        society_data = [{'society_id' : item[0], 'society_name' : item[1]} for item in societies]  #[item[0] for item in societies]
+        return jsonify({'message': "List of societies", 'data': society_data})    
     except Exception as e:
         print("Error:", e)
         return jsonify({'error': 'An error occurred while fetching society list'}), 500
     finally:
-        session_db.close()
-    return current_user
-    # data = request.get_json()
-    # username = data.get('username')
-    # password = data.get('password')
+        db.close()
 
-    # session_db = get_session_db()
+def fetch_society_details_con(db,society_id):
+    current_user = get_jwt_identity()
+    print("Current User is -->", current_user)
+    user_id = current_user['user_id']
 
-    # try:
-    #     user = session_db.query(User).filter(User.username == username).first()
-    #     print(user)
-    #     if user and bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
-    #         session['user_id'] = user.user_id
-    #         return jsonify({'message': 'Login Success!', 'user_id': user.user_id, 'role':user.role}), 200
-    #     else:
-    #         return jsonify({'message': 'Invalid username or password'}), 401
-    # except Exception as e:
-    #     print("Error:", e)
-    #     return jsonify({'error': 'An error occurred while signing in'}), 500
-    # finally:
-    #     session_db.close()
+    try:
+        societies = db.query(Society.society_id, Society.soc_name, User.name).\
+                    join(User, User.user_id == Society.user_id).\
+                    filter(and_(Society.is_active == 'Y', Society.society_id == society_id)).first()
+        society_data = {'society_id' : societies.society_id, 'society_name' : societies.soc_name, 'username' : societies.name}
+        print("Soc Data -->",society_data)
+        return jsonify({'message': "Society Detail", 'data': society_data})    
+    except Exception as e:
+        print("Error:", e)
+        return jsonify({'error': 'An error occurred while fetching society list'}), 500
+    finally:
+        db.close()    
+
