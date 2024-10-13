@@ -6,3 +6,4 @@ python-dotenv
 razorpay
 bcrypt
 flask-cors
+flask-jwt-extended
