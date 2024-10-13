@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import '../styles/SignInForm.css';
 import { useNavigate } from 'react-router-dom';
+import axiosInstance from '../utils/axiosInstance';
+import { jwtDecode } from 'jwt-decode';
+
 
 
 function SignInForm() {
@@ -13,14 +15,23 @@ function SignInForm() {
 
   const handleSignIn = async () => {
     try {
-        const response = await axios.post('http://127.0.0.1:5000/signin_auth', {
+        const response = await axiosInstance.post('/signin_auth', {
             username,
             password,
           });
-      console.log('Login successful:', response.data);
-      const { user_id, role } = response.data;
-      console.log('Login successful:', response.data);
 
+      console.log('Login successful:', response.data);
+      
+      const { access_token } = response.data;
+      
+      console.log('Login successful:', response.data);
+      
+      // Decode the access_token to extract the role
+      const decodedToken = jwtDecode(access_token);
+      const role = decodedToken.role;
+
+      sessionStorage.setItem('access_token', access_token);
+      // sessionStorage.setItem('role', role);
       navigate(`/dashboard`, { state: { role } });
     } catch (err) {
       setError('Failed to sign in.');

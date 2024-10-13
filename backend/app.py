@@ -5,7 +5,9 @@ import os
 import ast
 from dotenv import load_dotenv, dotenv_values
 from routes.auth_routes import auth_bp
+from routes.society_routes import society_bp
 from flask_cors import CORS
+from flask_jwt_extended import JWTManager
 # from razorpay_utils import Razor
 
 load_dotenv()
@@ -18,9 +20,12 @@ razor_api = {'key':rzr_key,'secret':rzr_secret}
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Make sure to set a secure secret key
+app.config['JWT_SECRET_KEY'] = 'IronManApp'  # Change this!
+jwt = JWTManager(app)
 CORS(app)
 
 app.register_blueprint(auth_bp)
+app.register_blueprint(society_bp)
 
 
 #OLD CODE

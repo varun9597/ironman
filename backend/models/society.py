@@ -14,7 +14,7 @@ class Society(Base):
     is_active = Column(String(10), nullable=False, default='Y')
 
     # Relationship with User model
-    user = relationship('User', backref='societies')
+    # user = relationship('User', backref='societies')
 
     def __repr__(self):
         return f"<Society(pk_soc_id={self.pk_soc_id}, soc_name={self.soc_name}, user_id={self.fk_user_id})>"

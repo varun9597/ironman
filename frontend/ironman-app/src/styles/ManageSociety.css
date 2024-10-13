@@ -1,0 +1,47 @@
+.table-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto; /* Center the table */
+    padding: 10px;
+  }
+  
+  .MuiTable-root {
+    border-collapse: collapse;
+  }
+  
+  .MuiTableCell-root {
+    padding: 8px 12px; /* Reduce padding for concise table */
+    font-size: 14px;
+  }
+  
+  .MuiTableHead-root {
+    background-color: #f0f0f0; /* Light gray background for header */
+  }
+  
+  .MuiTableCell-head {
+    font-weight: bold;
+    color: #333; /* Darker text color for header */
+    border-bottom: 2px solid #ccc;
+  }
+  
+  .MuiTableRow-root {
+    &:nth-of-type(even) {
+      background-color: #fafafa; /* Light background for alternate rows */
+    }
+  }
+  
+  .MuiTableCell-body {
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .action-button {
+    margin: 0 5px;
+    cursor: pointer;
+    font-size: 18px;
+    color: #1976d2;
+  }
+  
+  .action-button:hover {
+    color: #0a4a7b; /* Darker blue on hover */
+  }
+  
