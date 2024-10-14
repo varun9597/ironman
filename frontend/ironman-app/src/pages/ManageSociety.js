@@ -17,10 +17,12 @@ import {
   DialogTitle,
   TextField,
   Button,
+  Typography, // Import Typography to show error text
 } from '@mui/material'; // Import MUI components
 import VisibilityIcon from '@mui/icons-material/Visibility'; // Import icons
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add'; // Import Add Icon
 import '../styles/ManageSociety.css';
 
 function ManageSociety() {
@@ -33,6 +35,13 @@ function ManageSociety() {
   const [editSocietyName, setEditSocietyName] = useState('');
   const [previousSocietyName, setPreviousSocietyName] = useState(''); // Store previous name
   const [openEditDialog, setOpenEditDialog] = useState(false);
+
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false); // State for delete confirmation dialog
+  const [deleteSocietyId, setDeleteSocietyId] = useState(null); // State to track which society to delete
+
+  const [openAddDialog, setOpenAddDialog] = useState(false); // State for add society dialog
+  const [newSocietyName, setNewSocietyName] = useState(''); // State to track new society name
+  const [addError, setAddError] = useState(''); // State to track error when adding society
 
   useEffect(() => {
     const token = sessionStorage.getItem('access_token');
@@ -83,24 +92,88 @@ function ManageSociety() {
       })
       .then((response) => {
         console.log('Society updated successfully:', response);
-        // Update the local societyData with the new name
-        setSocietyData((prevData) =>
-          prevData.map((society) =>
-            society.society_id === editSocietyId
-              ? { ...society, society_name: editSocietyName }
-              : society
-          )
-        );
-        setOpenEditDialog(false); // Close the dialog
+        
+        // Re-fetch the updated society details after successful edit
+        axiosInstance
+          .get(`/view_society/${editSocietyId}`)
+          .then((res) => {
+            const updatedSociety = res.data.data;
+            setSocietyData((prevData) =>
+              prevData.map((society) =>
+                society.society_id === editSocietyId
+                  ? { ...society, society_name: updatedSociety.society_name }
+                  : society
+              )
+            );
+            setEditSocietyName(updatedSociety.society_name); // Update the state for dialog box
+            setPreviousSocietyName(updatedSociety.society_name); // Update the previous name
+            setOpenEditDialog(false); // Close the dialog
+          })
+          .catch((error) => {
+            console.error('Error fetching updated society details:', error);
+          });
       })
       .catch((error) => {
         console.error('Error updating society:', error);
       });
   };
 
-  const handleDelete = (societyId) => {
-    console.log(`Delete ${societyId}`);
-    // Implement delete logic
+  const handleDeleteClick = (societyId) => {
+    // Open the delete confirmation dialog
+    setDeleteSocietyId(societyId);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    // Proceed with deletion once confirmed
+    axiosInstance
+      .post(`/delete_society`, {
+        society_id: deleteSocietyId
+      })
+      .then((response) => {
+        console.log('Society deleted successfully:', response);
+
+        // Remove the deleted society from the societyData state
+        setSocietyData((prevData) =>
+          prevData.filter((society) => society.society_id !== deleteSocietyId)
+        );
+
+        // Close the delete confirmation dialog
+        setOpenDeleteDialog(false);
+      })
+      .catch((error) => {
+        console.error('Error deleting society:', error);
+      });
+  };
+
+  const handleAddSubmit = () => {
+    // Clear the previous error
+    setAddError('');
+
+    // Add new society via API
+    axiosInstance
+      .post('/add_society', {
+        society_name: newSocietyName,
+      })
+      .then((response) => {
+        console.log('Society added successfully:', response);
+
+        // Add the new society to the societyData state
+        setSocietyData((prevData) => [
+          ...prevData,
+          { society_id: response.data.society_id, society_name: newSocietyName },
+        ]);
+
+        setNewSocietyName(''); // Clear the input field
+        setOpenAddDialog(false); // Close the dialog
+      })
+      .catch((error) => {
+        if (error.response || error.response.data.error === "Society already exists") {
+          setAddError("Society with the same name already exists."); // Set error message
+        } else {
+          console.error('Error adding society:', error);
+        }
+      });
   };
 
   return (
@@ -109,6 +182,15 @@ function ManageSociety() {
 
       <div className="dash-header">
         <h2>Manage Society</h2>
+        {/* Add Society Button */}
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => setOpenAddDialog(true)} // Open add society dialog
+          style={{ marginLeft: 'auto' }}
+        >
+          Add Society
+        </Button>
       </div>
 
       <div className="dash-content">
@@ -137,7 +219,7 @@ function ManageSociety() {
                       <IconButton onClick={() => handleEditClick(society.society_id)}>
                         <EditIcon />
                       </IconButton>
-                      <IconButton onClick={() => handleDelete(society.society_id)}>
+                      <IconButton onClick={() => handleDeleteClick(society.society_id)}>
                         <DeleteIcon />
                       </IconButton>
                     </TableCell>
@@ -148,11 +230,36 @@ function ManageSociety() {
           </TableContainer>
         )}
 
+        {/* Add Society Dialog */}
+        <Dialog open={openAddDialog} onClose={() => setOpenAddDialog(false)}>
+          <DialogTitle>Add Society</DialogTitle>
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Society Name"
+              type="text"
+              fullWidth
+              value={newSocietyName}
+              onChange={(e) => setNewSocietyName(e.target.value)}
+            />
+            {/* Display error message if society already exists */}
+            {addError && (
+              <Typography color="error" variant="body2">
+                {addError}
+              </Typography>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => {setOpenAddDialog(false); setNewSocietyName('');}}>Cancel</Button>
+            <Button onClick={handleAddSubmit}>Add</Button>
+          </DialogActions>
+        </Dialog>
+
         {/* Edit Society Dialog */}
         <Dialog open={openEditDialog} onClose={() => setOpenEditDialog(false)}>
           <DialogTitle>Edit Society</DialogTitle>
           <DialogContent>
-            {/* Show the current society name */}
             <TextField
               autoFocus
               margin="dense"
@@ -161,16 +268,23 @@ function ManageSociety() {
               fullWidth
               value={editSocietyName}
               onChange={(e) => setEditSocietyName(e.target.value)}
-              helperText={`Previous Name: ${previousSocietyName}`} // Show previous name
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setOpenEditDialog(false)} color="primary">
-              Cancel
-            </Button>
-            <Button onClick={handleEditSubmit} color="primary">
-              Submit
-            </Button>
+            <Button onClick={() => setOpenEditDialog(false)}>Cancel</Button>
+            <Button onClick={handleEditSubmit}>Save</Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Delete Society Confirmation Dialog */}
+        <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
+          <DialogTitle>Confirm Delete</DialogTitle>
+          <DialogContent>
+            <p>Are you sure you want to delete this society?</p>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
+            <Button onClick={handleDeleteConfirm}>Delete</Button>
           </DialogActions>
         </Dialog>
       </div>

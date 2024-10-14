@@ -1,9 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
 from models.user import User  # Import the User model for relationship
-
-Base = declarative_base()
+from models.base_model import Base  # Assuming Base is defined in base_model.py
 
 class Society(Base):
     __tablename__ = 'tbl_society'
@@ -14,7 +12,7 @@ class Society(Base):
     is_active = Column(String(10), nullable=False, default='Y')
 
     # Relationship with User model
-    # user = relationship('User', backref='societies')
+    user = relationship('User', back_populates='societies')
 
     def __repr__(self):
-        return f"<Society(pk_soc_id={self.pk_soc_id}, soc_name={self.soc_name}, user_id={self.fk_user_id})>"
+        return f"<Society(society_id={self.society_id}, soc_name={self.soc_name}, user_id={self.user_id})>"
