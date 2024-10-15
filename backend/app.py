@@ -6,6 +6,7 @@ import ast
 from dotenv import load_dotenv, dotenv_values
 from routes.auth_routes import auth_bp
 from routes.society_routes import society_bp
+from routes.user_routes import users_bp
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 # from razorpay_utils import Razor
@@ -26,6 +27,7 @@ CORS(app)
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(society_bp)
+app.register_blueprint(users_bp)
 
 
 #OLD CODE

@@ -9,6 +9,10 @@ function RoleButtons({ role }) {
     navigate('/manage-society');
   };
 
+  const handleManageUsersClick = () => {
+    navigate('/manage-users');
+  }
+
 
   return (
     <div className="role-buttons">
@@ -20,7 +24,7 @@ function RoleButtons({ role }) {
         </>
       ) : null}
       {role === 'admin' ? (
-        <Button variant="contained" background-color="#007bff">Manage Users</Button>
+        <Button variant="contained" background-color="#007bff" onClick={handleManageUsersClick}>Manage Users</Button>
       ) : null}
     </div>
   );

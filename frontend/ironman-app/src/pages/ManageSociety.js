@@ -34,7 +34,13 @@ function ManageSociety() {
   const [editSocietyId, setEditSocietyId] = useState(null);
   const [editSocietyName, setEditSocietyName] = useState('');
   const [previousSocietyName, setPreviousSocietyName] = useState(''); // Store previous name
+  const [editUsername, setEditUsername] = useState(''); // State for username in edit dialog
   const [openEditDialog, setOpenEditDialog] = useState(false);
+
+  const [viewSocietyId, setViewSocietyId] = useState(null); // State for view society id
+  const [viewSocietyName, setViewSocietyName] = useState(''); // State for society name in view dialog
+  const [viewUsername, setViewUsername] = useState(''); // State for username in view dialog
+  const [openViewDialog, setOpenViewDialog] = useState(false); // State for view dialog
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false); // State for delete confirmation dialog
   const [deleteSocietyId, setDeleteSocietyId] = useState(null); // State to track which society to delete
@@ -63,8 +69,18 @@ function ManageSociety() {
   }, []);
 
   const handleView = (societyId) => {
-    console.log(`View ${societyId}`);
-    // Implement view logic
+    axiosInstance
+      .get(`/view_society/${societyId}`)
+      .then((response) => {
+        const { society_name, username } = response.data.data;
+        setViewSocietyName(society_name);
+        setViewUsername(username); // Fetch and set username
+        setViewSocietyId(societyId);
+        setOpenViewDialog(true); // Open view dialog
+      })
+      .catch((error) => {
+        console.error('Error fetching society details:', error);
+      });
   };
 
   const handleEditClick = (societyId) => {
@@ -72,10 +88,11 @@ function ManageSociety() {
     axiosInstance
       .get(`/view_society/${societyId}`)
       .then((response) => {
-        console.log(response.data);
+        const { society_name, username } = response.data.data;
         setEditSocietyId(societyId);
-        setEditSocietyName(response.data.data.society_name); // Populate with fetched data
-        setPreviousSocietyName(response.data.data.society_name); // Store previous name
+        setEditSocietyName(society_name); // Populate with fetched data
+        setPreviousSocietyName(society_name); // Store previous name
+        setEditUsername(username); // Set username in edit dialog
         setOpenEditDialog(true); // Open edit dialog
       })
       .catch((error) => {
@@ -201,25 +218,36 @@ function ManageSociety() {
         ) : (
           <TableContainer component={Paper}>
             <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Society Name</TableCell> {/* Column for society names */}
-                  <TableCell align="right">Actions</TableCell> {/* Column for actions */}
-                </TableRow>
+            <TableHead>
+            <TableRow>
+              <TableCell sx={{ fontWeight: 'bold' }}>Society Name</TableCell> {/* Column for society names */}
+              <TableCell sx={{ fontWeight: 'bold' }} align="right">Actions</TableCell> {/* Column for actions */}
+              </TableRow>
               </TableHead>
               <TableBody>
                 {societyData.map((society) => (
                   <TableRow key={society.society_id}>
                     <TableCell>{society.society_name}</TableCell> {/* Display society name */}
                     <TableCell align="right">
-                      {/* View, Edit, Delete Buttons */}
-                      <IconButton onClick={() => handleView(society.society_id)}>
+                      <IconButton
+                        onClick={() => handleView(society.society_id)} // Call handleView
+                        size="small"
+                        color="gray"
+                      >
                         <VisibilityIcon />
                       </IconButton>
-                      <IconButton onClick={() => handleEditClick(society.society_id)}>
+                      <IconButton
+                        onClick={() => handleEditClick(society.society_id)} // Call handleEditClick
+                        size="small"
+                        color="gray"
+                      >
                         <EditIcon />
                       </IconButton>
-                      <IconButton onClick={() => handleDeleteClick(society.society_id)}>
+                      <IconButton
+                        onClick={() => handleDeleteClick(society.society_id)} // Call handleDeleteClick
+                        size="small"
+                        color="gray"
+                      >
                         <DeleteIcon />
                       </IconButton>
                     </TableCell>
@@ -229,65 +257,104 @@ function ManageSociety() {
             </Table>
           </TableContainer>
         )}
-
-        {/* Add Society Dialog */}
-        <Dialog open={openAddDialog} onClose={() => setOpenAddDialog(false)}>
-          <DialogTitle>Add Society</DialogTitle>
-          <DialogContent>
-            <TextField
-              autoFocus
-              margin="dense"
-              label="Society Name"
-              type="text"
-              fullWidth
-              value={newSocietyName}
-              onChange={(e) => setNewSocietyName(e.target.value)}
-            />
-            {/* Display error message if society already exists */}
-            {addError && (
-              <Typography color="error" variant="body2">
-                {addError}
-              </Typography>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => {setOpenAddDialog(false); setNewSocietyName('');}}>Cancel</Button>
-            <Button onClick={handleAddSubmit}>Add</Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Edit Society Dialog */}
-        <Dialog open={openEditDialog} onClose={() => setOpenEditDialog(false)}>
-          <DialogTitle>Edit Society</DialogTitle>
-          <DialogContent>
-            <TextField
-              autoFocus
-              margin="dense"
-              label="Society Name"
-              type="text"
-              fullWidth
-              value={editSocietyName}
-              onChange={(e) => setEditSocietyName(e.target.value)}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenEditDialog(false)}>Cancel</Button>
-            <Button onClick={handleEditSubmit}>Save</Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Delete Society Confirmation Dialog */}
-        <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
-          <DialogTitle>Confirm Delete</DialogTitle>
-          <DialogContent>
-            <p>Are you sure you want to delete this society?</p>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
-            <Button onClick={handleDeleteConfirm}>Delete</Button>
-          </DialogActions>
-        </Dialog>
       </div>
+
+      {/* View Society Dialog */}
+      <Dialog open={openViewDialog} onClose={() => setOpenViewDialog(false)}>
+        <DialogTitle>View Society Details</DialogTitle>
+        <DialogContent>
+          <TextField
+            margin="dense"
+            label="Society Name"
+            type="text"
+            value={viewSocietyName}
+            fullWidth
+            InputProps={{ readOnly: true }} // Make the society name non-editable
+          />
+          <TextField
+            margin="dense"
+            label="Username"
+            type="text"
+            value={viewUsername} // Display the username
+            fullWidth
+            InputProps={{ readOnly: true }} // Make the username non-editable
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenViewDialog(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Society Dialog */}
+      <Dialog open={openEditDialog} onClose={() => setOpenEditDialog(false)}>
+        <DialogTitle>Edit Society</DialogTitle>
+        <DialogContent>
+          <TextField
+            margin="dense"
+            label="Previous Society Name"
+            type="text"
+            value={previousSocietyName} // Display previous society name
+            fullWidth
+            InputProps={{ readOnly: true }} // Make the previous name non-editable
+          />
+          <TextField
+            margin="dense"
+            label="New Society Name"
+            type="text"
+            value={editSocietyName} // Edit society name
+            onChange={(e) => setEditSocietyName(e.target.value)}
+            fullWidth
+          />
+          <TextField
+            margin="dense"
+            label="Username"
+            type="text"
+            value={editUsername} // Display the username in edit dialog
+            fullWidth
+            InputProps={{ readOnly: true }} // Make the username non-editable
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenEditDialog(false)}>Cancel</Button>
+          <Button onClick={handleEditSubmit}>Save</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add Society Dialog */}
+      <Dialog open={openAddDialog} onClose={() => setOpenAddDialog(false)}>
+        <DialogTitle>Add New Society</DialogTitle>
+        <DialogContent>
+          <TextField
+            margin="dense"
+            label="Society Name"
+            type="text"
+            value={newSocietyName}
+            onChange={(e) => setNewSocietyName(e.target.value)}
+            fullWidth
+          />
+          {addError && (
+            <Typography color="error" variant="body2">
+              {addError}
+            </Typography> // Display error if any
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenAddDialog(false)}>Cancel</Button>
+          <Button onClick={handleAddSubmit}>Add</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <Typography>Are you sure you want to delete this society?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
+          <Button color="secondary" onClick={handleDeleteConfirm}>Delete</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
